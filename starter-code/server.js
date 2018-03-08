@@ -6,8 +6,8 @@ const express = require('express');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-// TODO: put in connection string
-const conString = '';
+// TODOne: put in connection string
+const conString = 'postgres://localhost:5432/kilovolt';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', error => {
@@ -25,7 +25,7 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query(``)
+  client.query(`SELECT * FROM articles`)
     .then(result => {
       response.send(result.rows);
     })
@@ -34,45 +34,47 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles', (request, response) => {
+app.post('/articles/:author', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODO: How do you ask the database if we have an id for this author name?
-    '',
-    [],
-    function(err) {
-      if (err) console.error(err);
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-      
-      // Depends on what we found (Yes author id, or No author id?)
+    // TODOne: How do you ask the database if we have an id for this author name?
+    // REVIEW: This is our second query, to be executed when this first query is complete.
 
-      // NO, create author
-      queryTwo();
+    // Depends on what we found (Yes author id, or No author id?)
+    // NO, create author
 
-      // YES skip right to
-      queryThree(/*author_id*/);
-    }
+    // YES skip right to
+    'SELECT author_id FROM authors WHERE author = $1',
+    [request.body.author]
   )
+    .then(results => {
+      results ? queryThree(results) : queryTwo();
+    })
+    .catch(err => {
+      console.log(err);
+    });
 
-  // TODO: this function inserts new authors
+  // TODOne: this function inserts new authors
   function queryTwo() {
     client.query(
-      ``,
-      [],
-      function(err, result) {
-        if (err) console.error(err);
+      `INSERT INTO authors(author, "authorUrl") VALUE ($1, $2)`,
+      [request.body.author, request.body.authorUrl]
+    )
+      .then (result => {
+        queryThree(result.rows[0].author_id);
+      })
+      .catch (err => {
+        console.error(err);
 
         // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        queryThree(result.rows[0].author_id);
-      }
-    )
+      })
   }
 
   // TODO: this function inserts the article
   function queryThree(author_id) {
     client.query(
-      ``,
-      [],
+      `INSERT INTO articles(author_id, title, category, "publishedOn", body) VALUE ($1, $2, $3, $4, $5)`,
+      [author_id, request.body.title, request.body.category, request.body.publishedOn, request.body.body],
       function(err) {
         if (err) console.error(err);
         response.send('insert complete');
@@ -160,7 +162,7 @@ function loadArticles() {
             FROM authors
             WHERE author=$5;
             `,
-              [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
+            [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
             )
           })
         })

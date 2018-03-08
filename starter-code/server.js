@@ -6,8 +6,8 @@ const express = require('express');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-// TODO: put in connection string
-const conString = '';
+// TODOne: put in connection string
+const conString ='postgres://postgres:Alchemy@localhost:5432/kilovolt';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', error => {
@@ -37,9 +37,16 @@ app.get('/articles', (request, response) => {
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODO: How do you ask the database if we have an id for this author name?
-    '',
-    [],
+    // TODOne: How do you ask the database if we have an id for this author name?
+    `INSERT INTO
+    articles(title, author, "authorUrl", category, "publishedOn", body)
+    VALUES ($1, $2, $3, $4, $5, $6);`,
+    [request.body.title,
+      request.body.author,
+      request.body.authorUrl,
+      request.body.category,
+      request.body.publishedOn,
+      request.body.body],
     function(err) {
       if (err) console.error(err);
       // REVIEW: This is our second query, to be executed when this first query is complete.

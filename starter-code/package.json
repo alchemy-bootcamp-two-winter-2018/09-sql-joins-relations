@@ -4,7 +4,8 @@
   "description": "As we now complete our MVC conversation, we can refactor our app to use good MVC separation of concerns.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "Code Fellows",
   "license": "ISC",
@@ -12,5 +13,10 @@
     "express": "^4.13.3",
     "body-parser": "^1.15.2",
     "pg": "^6.1.2"
+  },
+  "devDependencies": {
+    "handlebars": "^4.0.11",
+    "highlight": "^0.2.4",
+    "marked": "^0.3.17"
   }
 }

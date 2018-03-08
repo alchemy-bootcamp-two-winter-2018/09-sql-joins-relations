@@ -34,71 +34,73 @@ app.get('/articles', (request, response) => {
     });
 });
 
+loadDB();
+
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
-    '',
-    [],
-    function(err) {
-      if (err) console.error(err);
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-
-      // Depends on what we found (Yes author id, or No author id?)
-
-      // NO, create author
-      queryTwo();
-
-      // YES skip right to
-      queryThree(/*author_id*/);
-    }
-  );
-
-  // TODO: this function inserts new authors
-  function queryTwo() {
-    client.query(
-      ``,
-      [],
-      function(err, result) {
-        if (err) console.error(err);
-
-        // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        queryThree(result.rows[0].author_id);
-      }
-    );
-  }
-
-  // TODO: this function inserts the article
-  function queryThree(author_id) {
-    client.query(
-      ``,
-      [],
-      function(err) {
-        if (err) console.error(err);
-        response.send('insert complete');
-      }
-    );
-  }
-});
-
-app.put('/articles/:id', function(request, response) {
-  client.query(
-    ``,
-    []
+    'SELECT author_id FROM authors WHERE author = $1;',
+    [request.body.author]
   )
-    .then(() => {
-      client.query(
-        ``,
-        []
-      );
-    })
-    .then(() => {
-      response.send('Update complete');
+    .then(result => {
+      // REVIEW: This is our second query, to be executed when this first query is complete.
+      // Depends on what we found (Yes author id, or No author id?)
+      // NO, create author (This was queryTwo. I renamed it insertAuthor)
+      // YES skip right to queryThree (which I renamed insertArticle)
+      result.rows.length === 0 ? insertAuthor() : insertArticle(result.rows[0].author_id);
     })
     .catch(err => {
-      console.error(err);
+      if (err) console.error(err);
     });
 });
+
+
+// TODO: this function inserts new authors
+// function insertAuthor() {
+//   client.query(
+//     ``,
+//     [],
+//     function(err, result) {
+//       if (err) console.error(err);
+
+//       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+//       insertArticle(result.rows[0].author_id);
+//     }
+//   );
+// }
+
+// TODO: this function inserts the article
+//   function insertArticle(author_id) {
+//     client.query(
+//       ``,
+//       [],
+//       function(err) {
+//         if (err) console.error(err);
+//         response.send('insert complete');
+//       }
+//     );
+//   }
+// });
+
+// app.put('/articles/:id', function(request, response) {
+//   client.query(
+//     ``,
+//     []
+//   )
+//     .then(() => {
+//       client.query(
+//         ``,
+//         []
+//       );
+//     })
+//     .then(() => {
+//       response.send('Update complete');
+//     })
+//     .catch(err => {
+//       console.error(err);
+//     });
+// });
 
 app.delete('/articles/:id', (request, response) => {
   client.query(
@@ -124,7 +126,7 @@ app.delete('/articles', (request, response) => {
 });
 
 // REVIEW: This calls the loadDB() function, defined below.
-loadDB();
+// loadDB();
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}!`);

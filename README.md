@@ -1,81 +1,35 @@
-Lab 09: Database Relationships & SQL Joins
-===
+# Kilovolt Blog
 
-## Content
-1. Submission Instructions
-1. Resources
-1. Configuration
-1. User Stories and Feature Tasks
+**Author**: Alchemy Code Lab 301 Day Class - Winter 2018
 
-----
+**Version**: 1.0.0
 
-## Submission Instructions
-Follow the submission instructions outlined in our [submit-process repo](https://github.com/alchemy-bootcamp-two-winter-2018/submit-process).
+## Overview
+A responsive blog app for Alchemy Code Lab students to document their experience during code school.
 
+## Getting Started
+<!-- What are the steps that a user must take in order to build this app on their own machine and get it running? -->
+To run this project locally, `fork` and `clone` this repo.
+- Fork it to your GitHub account.
+- In your terminal: `git clone <your-fork-url>` and `npm install` to install the necessary npm packages
 
-## Resources  
-[SQLBolt](http://sqlbolt.com/) -- Interactive SQL Tutorial
+Do your work on a feature named branch, for example "responsive-header"
+- In your terminal: `git checkout <feature-name>`
+- To start the app, in your terminal run `node server.js` then in your browser, go to localhost:3000.
 
-[SQL Cheat Sheet](http://www.cheat-sheets.org/sites/sql.su/)
+Make sure your project is still passing the linter.
+- In your terminal, `cd` into the project repo and run `eslint .`
 
-[Query String Primer](https://en.wikipedia.org/wiki/Query_string)
+## Architecture
+<!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
+Front end: 
 
-## Configuration
-_Your repository must include:_
-```
-09-sql-joins-relations
-├── .eslintrc.json
-├── .gitignore
-├── LICENSE
-├── README.md
-├── node_modules
-├── package-lock.json
-├── package.json
-├── public
-│   ├── data
-│   │   └── hackerIpsum.json
-│   ├── index.html
-│   ├── new.html
-│   ├── scripts
-│   │   ├── article.js
-│   │   └── articleView.js
-│   ├── styles
-│   │   ├── base.css
-│   │   ├── fonts
-│   │   │   ├── icomoon.eot
-│   │   │   ├── icomoon.svg
-│   │   │   ├── icomoon.ttf
-│   │   │   └── icomoon.woff
-│   │   ├── icons.css
-│   │   ├── layout.css
-│   │   └── modules.css
-│   └── vendor
-│       ├── scripts
-│       │   ├── handlebars.js
-│       │   ├── highlight.pack.js
-│       │   └── marked.js
-│       └── styles
-│           ├── default.css
-│           ├── normalize.css
-│           └── railscasts.css
-└── server.js
-```
+Our JS is structured following MVC. Script folders/files are named to reflect which component they relate to: `articleView.js` or `models/Article.js`. 
 
-## Feature Tasks
-***Don't forget to set your conString!***
+Styles are structured following SMACCS.
 
-*As a user, I want more dynamic control over my database so that I can relate similar articles.*
-- Write the following SQL queries:
-  - Join all data from articles and authors tables on the author_id value of each
-  - Insert an author
-  - Retrieve an author
-  - Update an author
-  - Insert an article
-  - Retrieve an article
-  - Update an article
+Libraries used include: jQuery (for DOM manipulation, AJAX), HandlebarsJS (for HTML templates), NormalizeCSS (for CSS reset).
 
+Back end:
 
-*As a developer, I want to utilize SQL queries so that I can join data together in the database.*
-- This means you'll want to be able to do full CRUD on articles in the database. You'll have to use SQL to make a table for articles (**and clear out the table for troubleshooting**), with a class-level method attached to the constructor function (because it does not apply to any single instance). Then teach each article instance how to write or update itself to the database, or delete itself, via instance methods (available for use as needed in the code).
-- Crucially, you'll need to trace through the app logic, and all those callback functions to determine WHEN is the right time to load data, or convert JSON.
-- Look through the TODOs, which signify areas of the code with varying levels of completeness, and focus initially on writing correct SQL. Once you complete the TODOs, follow the instructions in the adjacent [CRUD-testing.md](CRUD-testing.md) doc to verify that everything works.
+We are using ExpressJS and Node to create a server. And a PSQL database for persistence. We use node-postgres (aka pg) to conmect to our database. 

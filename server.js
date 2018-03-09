@@ -80,7 +80,7 @@ function queryThree(request,author_id) {
     VALUES($1,$2,$3,$4,$5);`,
     [author_id,request.body.title,request.body.category,request.body.publishedOn,request.body.body])
     .then(function() {
-      return 'insert complete';
+      console.log('insert complete');
     })
     .catch(function(err){
       if (err) console.error(err);
@@ -89,14 +89,24 @@ function queryThree(request,author_id) {
 
 
 app.put('/articles/:id', function(request, response) {
+  console.log(request.body.author_id);
   client.query(
-    ``,
-    []
+    `UPDATE articles
+    SET title = $1,
+    category = $2,
+    "publishedOn" = $3,
+    body = $4 
+    WHERE author_id = $5;`,
+    [request.body.title,request.body.category,request.body.publishedOn,request.body.body,request.body.author_id]
   )
     .then(() => {
       client.query(
-        ``,
-        []
+        `UPDATE authors
+        SET author = $1,
+        "authorUrl" = $2
+        WHERE author_id= $3;
+        `,
+        [request.body.author,request.body.authorUrl,request.body.author_id]
       );
     })
     .then(() => {

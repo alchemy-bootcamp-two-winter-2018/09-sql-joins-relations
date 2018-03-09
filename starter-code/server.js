@@ -35,35 +35,44 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles/:author', (request, response) => {
+app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
     `
+    SELECT author_id
+    FROM authors
+    WHERE author = '$1'
     `,
-    []
+    [request.body.author]
   )
       // REVIEW: This is our second query, to be executed when this first query is complete.
       
       // Depends on what we found (Yes author id, or No author id?)
 
+      // // YES skip right to
+      .then(() => {
+        console.log('Success');
+        // queryThree(request.param.id);
+      })
+            
       // NO, create author
-  .then(() => {
-    // queryTwo(request.param.id);
-
-    // // YES skip right to
-    // queryThree(request.param.id);
-  })
   .catch(() => {
+    queryTwo(request.body.author, request.body.authorUrl);
+    // queryThree(request.param.id);
   });
 
   // TODO: this function inserts new authors
-  function queryTwo() {
+  function queryTwo(newAuthor, newAuthorUrl) {
+    console.log('Arguments: ' + newAuthor + ' and ' + newAuthorUrl);
     client.query(
       `
+      INSERT INTO authors (author, "authorUrl")
+      VALUES ('$1', '$2') ON CONFLICT DO NOTHING;
       `,
-      [])
-    .then(() => {
+      [newAuthor, newAuthorUrl])
+      .then(() => {
+      console.log('New author created');
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
 
       // queryThree(result.rows[0].author_id);

@@ -38,7 +38,7 @@ app.get('/articles', (request, response) => {
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODO: How do you ask the database if we have an id for this author name?
+    // TODONE: How do you ask the database if we have an id for this author name?
     `
     SELECT author_id
     FROM authors
@@ -46,25 +46,19 @@ app.post('/articles', (request, response) => {
     `,
     [request.body.author]
   )
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-      
-      // Depends on what we found (Yes author id, or No author id?)
-
-      // // YES skip right to
-      .then(() => {
-        console.log('Success');
-        // queryThree(request.param.id);
-      })
-            
-      // NO, create author
+  .then(() => {
+    console.log('Author found. Proceeding to add article.');
+    queryThree(request.body.title, request.body.category, request.body.publishedOn, request.body.body, request.body.author);
+  })
+  
   .catch(() => {
+    console.log('Author not found. Adding author.');
     queryTwo(request.body.author, request.body.authorUrl);
-    // queryThree(request.param.id);
+    queryThree(request.body.title, request.body.category, request.body.publishedOn, request.body.body, request.body.author);
   });
 
-  // TODO: this function inserts new authors
+  // TODONE: this function inserts new authors
   function queryTwo(newAuthor, newAuthorUrl) {
-    console.log('Arguments: ' + newAuthor + ' and ' + newAuthorUrl);
     client.query(
       `
       INSERT INTO authors (author, "authorUrl")
@@ -73,25 +67,30 @@ app.post('/articles', (request, response) => {
       [newAuthor, newAuthorUrl])
       .then(() => {
       console.log('New author created');
-      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-
-      // queryThree(result.rows[0].author_id);
+      queryThree(request.body.title, request.body.category, request.body.publishedOn, request.body.body, request.body.author);
     })
     .catch(() => {
-      console.log('Query Two Failure');
+      console.log('Query Two Failure. Aborting.');
     });
   }
-  // TODO: this function inserts the article
-  function queryThree(author_id) {
+  // TODOne: this function inserts the article
+  function queryThree(title, category, publishedOn, body, author) {
     client.query(
       `
-      `,
-      [])
+      INSERT INTO articles(author_id, title, category, "publishedOn", body)
+      SELECT author_id, $1, $2, $3, $4
+      FROM authors
+      WHERE author=$5;
+`,
+      [title, category, publishedOn, body, author])
     .then(() => {
+      console.log(`Article successfully added! Title: ${title}, Author: ${author}.`)
     })
+
     .catch(() => {
+      console.log('Query three error. Aborting.')
     })
-  }
+  };
 });
 
 app.put('/articles/:id', function(request, response) {

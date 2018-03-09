@@ -39,13 +39,13 @@ app.get('/articles', (request, response) => {
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODOne?: How do you ask the database if we have an id for this author name?
+    // TODOne: How do you ask the database if we have an id for this author name?
     'SELECT * FROM authors WHERE author=$1;',
     [request.body.author]
   ).then (result => {
-    if (result.rows.length === 0) queryTwo();
+    if (result.rows.length === 0) queryTwo(request.body.author, request.body.authorUrl);
     queryThree(result.rows[0].author_id);
-    console.log(result.rows[0].author_id);
+    // console.log(result.rows[0].author_id);
   }).catch(err => {
     if (err) console.error(err);
   });
@@ -58,14 +58,15 @@ app.post('/articles', (request, response) => {
   // YES skip right to
   // queryThree(author_id);
 
-  // TODO: this function inserts new authors
-  function queryTwo() {
+  // TODOne: this function inserts new authors
+  function queryTwo(authorName, authorUrl) {
     client.query(
       `INSERT INTO
-      articles(author, authorUrl)
-      VALUES ($1, $2);`,
-      [request.body.author]
+      authors (author, "authorUrl")
+      VALUES ($1, $2) RETURNING author_id;`,
+      [authorName,authorUrl]
     ).then (result => {
+      console.log(result.rows[0].author_id);
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
       queryThree(result.rows[0].author_id);
     }).catch (err => {
@@ -76,9 +77,9 @@ app.post('/articles', (request, response) => {
   // TODO: this function inserts the article
   function queryThree(author_id) {
     client.query(
-      `INSERT INTO AUTHORS
+      `INSERT INTO articles
       VALUES
-      author=$1, WHERE author_id=$1;`,
+      author, WHERE author_id=$1;`,
       [
         request.body.author
       ]

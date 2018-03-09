@@ -40,11 +40,8 @@ app.post('/articles/:author', (request, response) => {
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
     `
-    SELECT author_id
-    FROM authors
-    WHERE author = $1;
     `,
-    [request.params.author]
+    []
   )
       // REVIEW: This is our second query, to be executed when this first query is complete.
       
@@ -52,51 +49,40 @@ app.post('/articles/:author', (request, response) => {
 
       // NO, create author
   .then(() => {
-    if (response === undefined) {throw err};
-    console.log('This test: ' + request.params.author_id);
     // queryTwo(request.param.id);
 
     // // YES skip right to
     // queryThree(request.param.id);
   })
   .catch(() => {
-    console.log('No author');
   });
 
   // TODO: this function inserts new authors
-  // function queryTwo() {
-  //   client.query(
-  //     `
-  //     SELECT author_id
-  //     FROM authors
-  //     WHERE author = $1;
-  //     `,
-  //     [request.params.id])
-  //   .then(() => {
-  //     // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-  //     console.log("Query Two");
-  //     // queryThree(result.rows[0].author_id);
-  //   })
-  //   .catch(() => {
-  //     console.log('Query Two Failure');
-  //   });
-  // }
+  function queryTwo() {
+    client.query(
+      `
+      `,
+      [])
+    .then(() => {
+      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+
+      // queryThree(result.rows[0].author_id);
+    })
+    .catch(() => {
+      console.log('Query Two Failure');
+    });
+  }
   // TODO: this function inserts the article
-  // function queryThree(author_id) {
-  //   client.query(
-  //     `
-  //     SELECT author_id
-  //     FROM authors
-  //     WHERE author = $1;
-  //     `,
-  //     [request.params.id])
-  //   .then(() => {
-  //     console.log('Query Three');
-  //   })
-  //   .catch(() => {
-  //     console.log('Query Three Failure');
-  //   })
-  // }
+  function queryThree(author_id) {
+    client.query(
+      `
+      `,
+      [])
+    .then(() => {
+    })
+    .catch(() => {
+    })
+  }
 });
 
 app.put('/articles/:id', function(request, response) {

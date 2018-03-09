@@ -48,7 +48,7 @@ app.post('/articles', (request, response) => {
       // Depends on what we found (Yes author id, or No author id?)
       // NO, create author (This was queryTwo. I renamed it insertAuthor)
       // YES skip right to queryThree (which I renamed insertArticle)
-      result.rows.length === 0 ? insertAuthor(request.body.author, request.body.authorUrl) : insertArticle(result.rows[0].author_id);
+      result.rows.length === 0 ? insertAuthor(request, response) : insertArticle(request, result.rows[0].author_id, response);
     })
     .catch(err => {
       if (err) console.error(err);
@@ -57,19 +57,19 @@ app.post('/articles', (request, response) => {
 
 
 // TODO: this function inserts new authors
-function insertAuthor(author, authorUrl) {
+function insertAuthor(request, response) {
   client.query(`
     INSERT INTO authors (author, "authorUrl")
     VALUES ($1, $2)
     RETURNING author_id;
     `,
-  [author, authorUrl]
+  [request.body.author, request.body.authorUrl]
   )
     .then(result => {
       console.log(result);
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
 
-      insertArticle(result.rows[0].author_id);
+      insertArticle(request, result.rows[0].author_id, response);
     })
     .catch(err => {
       if (err) console.error(err);
@@ -77,17 +77,31 @@ function insertAuthor(author, authorUrl) {
 }
 
 // TODO: this function inserts the article
-//   function insertArticle(author_id) {
-//     client.query(
-//       ``,
-//       [],
-//       function(err) {
-//         if (err) console.error(err);
-//         response.send('insert complete');
-//       }
-//     );
-//   }
-// });
+function insertArticle(articleData, author_id, response) {
+  const body = articleData.body;
+  client.query(`
+    INSERT INTO
+    articles(author_id, title, category, "publishedOn", body)
+    VALUES ($1, $2, $3, $4, $5);
+    `,
+  [
+    author_id,
+    body.title,
+    body.category,
+    body.publishedOn,
+    body.body,
+  ]
+  )
+    .then(result => {
+      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+
+      response.send('insert complete');
+    })
+    .catch(err => {
+      if (err) console.error(err);
+    });
+}
+
 
 // app.put('/articles/:id', function(request, response) {
 //   client.query(

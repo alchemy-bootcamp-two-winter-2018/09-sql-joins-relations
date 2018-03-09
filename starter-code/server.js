@@ -93,21 +93,19 @@ app.post('/articles/:author', (request, response) => {
 
 app.put('/articles/:id', function(request, response) {
   const body = request.body;
-  const id = request.params.id;
+  const id = request.params;
 
   client.query(
     `UPDATE authors
     SET author=$1, "authorUrl"=$2
-    WHERE id=$6
-    RETURNING id, author, "authorUrl"`,
+    WHERE author_id=$6`,
     [body.author, body.authorUrl, id]
   )
     .then(() => {
       client.query(
         `UPDATE articles
         SET author_id=$1, title=$2, category=$3, "publishedOn"=$4, body=$5
-        WHERE id=$6
-        RETURNING id, author_id, title, category, "publishedOn", body`,
+        WHERE id=$6`,
         [body.author_id, body.title, body.category, body.publishedOn, body.body, id]
       )
     })

@@ -48,7 +48,7 @@ app.post('/articles', (request, response) => {
       // Depends on what we found (Yes author id, or No author id?)
       // NO, create author (This was queryTwo. I renamed it insertAuthor)
       // YES skip right to queryThree (which I renamed insertArticle)
-      result.rows.length === 0 ? insertAuthor() : insertArticle(result.rows[0].author_id);
+      result.rows.length === 0 ? insertAuthor(request.body.author, request.body.authorUrl) : insertArticle(result.rows[0].author_id);
     })
     .catch(err => {
       if (err) console.error(err);
@@ -57,18 +57,24 @@ app.post('/articles', (request, response) => {
 
 
 // TODO: this function inserts new authors
-// function insertAuthor() {
-//   client.query(
-//     ``,
-//     [],
-//     function(err, result) {
-//       if (err) console.error(err);
+function insertAuthor(author, authorUrl) {
+  client.query(`
+    INSERT INTO authors (author, "authorUrl")
+    VALUES ($1, $2)
+    RETURNING author_id;
+    `,
+  [author, authorUrl]
+  )
+    .then(result => {
+      console.log(result);
+      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
 
-//       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-//       insertArticle(result.rows[0].author_id);
-//     }
-//   );
-// }
+      insertArticle(result.rows[0].author_id);
+    })
+    .catch(err => {
+      if (err) console.error(err);
+    });
+}
 
 // TODO: this function inserts the article
 //   function insertArticle(author_id) {

@@ -25,7 +25,7 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query(`SELECT * FROM articles`)
+  client.query(`SELECT * FROM articles`) //join tables here with inner join
     .then(result => {
       response.send(result.rows);
     })
@@ -48,8 +48,7 @@ app.post('/articles/:author', (request, response) => {
     [request.params.author]
   )
     .then(result => {
-      console.log('working!!!!!!!!!!!!!!!!!!!!! In first query')
-      result.rows[0].author_id ? queryThree(result.rows[0].author_id) : queryTwo();
+      result.rows.length > 0 ? queryThree(result.rows[0].author_id) : queryTwo();
     })
     .catch(err => {
       console.log(err);
@@ -58,7 +57,7 @@ app.post('/articles/:author', (request, response) => {
   // TODOne: this function inserts new authors
   function queryTwo() {
     client.query(
-      `INSERT INTO authors(author, "authorUrl") VALUES ($1, $2);`,
+      `INSERT INTO authors(author, "authorUrl") VALUES ($1, $2) RETURNING author_id;`,
       [request.body.author, request.body.authorUrl]
     )
       .then (result => {
@@ -78,7 +77,6 @@ app.post('/articles/:author', (request, response) => {
       [author_id, request.body.title, request.body.category, request.body.publishedOn, request.body.body]
     )
       .then (() => {
-        console.log('working!!!!!!!!!!!!!!!!!!!!!');
         response.send('insert complete');
       })
       .catch(err => {

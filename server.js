@@ -45,12 +45,10 @@ app.get('/articles', (request, response) => {
     });
 });
 
-loadDB();
-
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODO: How do you ask the database if we have an id for this author name?
+    // TODOne: How do you ask the database if we have an id for this author name?
     'SELECT author_id FROM authors WHERE author = $1;',
     [request.body.author]
   )
@@ -67,7 +65,7 @@ app.post('/articles', (request, response) => {
 });
 
 
-// TODO: this function inserts new authors
+// TODOne: this function inserts new authors
 function insertAuthor(request, response) {
   client.query(`
     INSERT INTO authors (author, "authorUrl")
@@ -87,7 +85,7 @@ function insertAuthor(request, response) {
     });
 }
 
-// TODO: this function inserts the article
+// TODOne: this function inserts the article
 function insertArticle(request, author_id, response) {
   const body = request.body;
   client.query(`
@@ -114,30 +112,31 @@ function insertArticle(request, author_id, response) {
 }
 
 // an extra method for accessing articles
-// app.get('/articles/:id', (request, response) => {
-//   client.query(`
-//     SELECT
-//       articles.title,
-//       articles.category,
-//       authors.author,
-//       authors."authorUrl",
-//       articles."publishedOn",
-//       articles.body
-//     FROM articles
-//     JOIN authors
-//     ON articles.author_id = authors.author_id
-//     WHERE articles.article_id = $1;
-//   `,
-//   [request.params.id]
-//   )
-//     .then(function(data) {
-//       if(data.rows.length === 0) response.sendStatus(404);
-//       else response.send(data.rows[0]);
-//     })
-//     .catch(function(err) {
-//       if (err) console.error(err);
-//     });
-// });
+app.get('/articles/:id', (request, response) => {
+  client.query(`
+    SELECT
+      articles.title,
+      articles.category,
+      authors.author,
+      authors."authorUrl",
+      articles."publishedOn",
+      articles.body,
+      authors.author_id
+    FROM articles
+    JOIN authors
+    ON articles.author_id = authors.author_id
+    WHERE articles.article_id = $1;
+  `,
+  [request.params.id]
+  )
+    .then(function(data) {
+      if(data.rows.length === 0) response.sendStatus(404);
+      else response.send(data.rows[0]);
+    })
+    .catch(function(err) {
+      if (err) console.error(err);
+    });
+});
 
 app.put('/articles/:id', (request, response) => {
   const body = request.body;
@@ -203,7 +202,7 @@ app.delete('/articles', (request, response) => {
 });
 
 // REVIEW: This calls the loadDB() function, defined below.
-// loadDB();
+loadDB();
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}!`);

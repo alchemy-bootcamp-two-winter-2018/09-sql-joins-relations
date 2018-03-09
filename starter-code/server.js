@@ -35,13 +35,13 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles', (request, response) => {
+app.post('/articles/:author', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
     `
-    SELECT *
-    FROM articles
+    SELECT author_id
+    FROM authors
     WHERE author = $1;
     `,
     [request.params.author]
@@ -52,47 +52,51 @@ app.post('/articles', (request, response) => {
 
       // NO, create author
   .then(() => {
-    queryTwo();
+    if (response === undefined) {throw err};
+    console.log('This test: ' + request.params.author_id);
+    // queryTwo(request.param.id);
 
     // // YES skip right to
     // queryThree(request.param.id);
   })
   .catch(() => {
-    console.log('Catch at first query');
+    console.log('No author');
   });
 
   // TODO: this function inserts new authors
-  function queryTwo() {
-    client.query(
-      `
-      INSERT INTO authors(author, "authorUrl")
-      VALUES ($1, $2)
-      `,
-      [request.params.id, "author_url"])
-    .then(() => {
-      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-      console.log("We got to query 3");
-      // queryThree(result.rows[0].author_id);
-    })
-    .catch(() => {
-      console.log('Query Two Failure');
-    });
-  }
+  // function queryTwo() {
+  //   client.query(
+  //     `
+  //     SELECT author_id
+  //     FROM authors
+  //     WHERE author = $1;
+  //     `,
+  //     [request.params.id])
+  //   .then(() => {
+  //     // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+  //     console.log("Query Two");
+  //     // queryThree(result.rows[0].author_id);
+  //   })
+  //   .catch(() => {
+  //     console.log('Query Two Failure');
+  //   });
+  // }
   // TODO: this function inserts the article
-  function queryThree(author_id) {
-    client.query(
-      `
-      INSERT INTO articles(author, "authorUrl")
-      VALUES ($1, $2)
-      `,
-    [])
-    .then(() => {
-      console.log('Attempt at Query Three');
-    })
-    .catch(() => {
-      console.log('Query Three Failure');
-    })
-  }
+  // function queryThree(author_id) {
+  //   client.query(
+  //     `
+  //     SELECT author_id
+  //     FROM authors
+  //     WHERE author = $1;
+  //     `,
+  //     [request.params.id])
+  //   .then(() => {
+  //     console.log('Query Three');
+  //   })
+  //   .catch(() => {
+  //     console.log('Query Three Failure');
+  //   })
+  // }
 });
 
 app.put('/articles/:id', function(request, response) {

@@ -40,50 +40,62 @@ app.get('/articles', (request, response) => {
 
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
+  // TODO: How do you ask the database if we have an id for this author name?
   client.query(
-    // TODO: How do you ask the database if we have an id for this author name?
-    '',
+    `SELECT * from authors where author=$1;`,
+    [request.body.author]
+  )
+    .then(function(result) {
+      if (result.rows.length === 0) queryTwo(request.body.author,request.body.authorUrl);
+      queryThree(result.rows[0].author_id);
+    })
+    .catch(function(err) {
+      const code = err.code === '22P02' ? 400 : 500;
+      response.status(code).send(err.message);
+      // REVIEW: This is our second query, to be executed when this first query is complete.
+
+    // Depends on what we found (Yes author id, or No author id?)
+
+    // NO, create author
+    });
+  // queryTwo();
+
+  // YES skip right to
+  // queryThree(/*author_id*/);
+});
+
+// TODO: this function inserts new authors
+function queryTwo(authorName,authorURL){
+  console.log('Author Exists is false!:',authorName);
+  client.query(
+    `INSERT INTO authors(author,"authorUrl")
+    VALUES($1,$2)`,
+    [authorName,authorURL]
+  )
+    .then(function(result) {
+      queryThree(result.rows[0].author_id);
+    })
+    .catch(function(err){
+      if (err) console.error(err);
+    });
+  // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+}
+
+
+
+// TODO: this function inserts the article
+function queryThree(author_id) {
+  console.log('Author Exists is true!');
+  client.query(
+    ``,
     [],
     function(err) {
       if (err) console.error(err);
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-
-      // Depends on what we found (Yes author id, or No author id?)
-
-      // NO, create author
-      queryTwo();
-
-      // YES skip right to
-      queryThree(/*author_id*/);
+      response.send('insert complete');
     }
   );
+}
 
-  // TODO: this function inserts new authors
-  function queryTwo() {
-    client.query(
-      ``,
-      [],
-      function(err, result) {
-        if (err) console.error(err);
-
-        // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        queryThree(result.rows[0].author_id);
-      }
-    );
-  }
-
-  // TODO: this function inserts the article
-  function queryThree(author_id) {
-    client.query(
-      ``,
-      [],
-      function(err) {
-        if (err) console.error(err);
-        response.send('insert complete');
-      }
-    );
-  }
-});
 
 app.put('/articles/:id', function(request, response) {
   client.query(

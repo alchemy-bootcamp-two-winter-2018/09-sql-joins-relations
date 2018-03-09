@@ -46,7 +46,7 @@ app.post('/articles', (request, response) => {
     [request.body.author]
   )
     .then(function(result) {
-      if (result.rows.length === 0) queryTwo(request.body.author,request.body.authorUrl);
+      if (result.rows.length === 0) queryTwo(request);
       queryThree(result.rows[0].author_id);
     })
     .catch(function(err) {
@@ -65,15 +65,15 @@ app.post('/articles', (request, response) => {
 });
 
 // TODO: this function inserts new authors
-function queryTwo(authorName,authorURL){
-  console.log('Author Exists is false!:',authorName);
+function queryTwo(request){
   client.query(
     `INSERT INTO authors(author,"authorUrl")
-    VALUES($1,$2)`,
-    [authorName,authorURL]
+    VALUES($1,$2) RETURNING author_id;`,
+    [request.body.author,request.body.authorUrl]
   )
     .then(function(result) {
-      queryThree(result.rows[0].author_id);
+      queryThree(request,result.rows[0].author_id);
+//queryThree(result.rows[0].author_id);
     })
     .catch(function(err){
       if (err) console.error(err);
@@ -84,16 +84,18 @@ function queryTwo(authorName,authorURL){
 
 
 // TODO: this function inserts the article
-function queryThree(author_id) {
+function queryThree(request,author_id) {
   console.log('Author Exists is true!');
   client.query(
-    ``,
-    [],
-    function(err) {
+    `INSERT INTO articles(author_id,title,category,"publishedOn",body)
+    VALUES($1,$2,$3,$4,$5);`,
+    [author_id,request.body.title,request.body.category,request.body.publishedOn,request.body.body])
+    .then(function() {
+      return 'insert complete';
+    })
+    .catch(function(err){
       if (err) console.error(err);
-      response.send('insert complete');
-    }
-  );
+    });
 }
 
 

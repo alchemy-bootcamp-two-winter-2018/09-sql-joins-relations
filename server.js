@@ -85,6 +85,7 @@ app.post('/articles', (request, response) => {
       ]
     )
       .then (result => {
+        console.log(author_id);
         response.send('update complete');
       })
       .catch (err => {

@@ -88,8 +88,8 @@ function insertAuthor(request, response) {
 }
 
 // TODO: this function inserts the article
-function insertArticle(articleData, author_id, response) {
-  const body = articleData.body;
+function insertArticle(request, author_id, response) {
+  const body = request.body;
   client.query(`
     INSERT INTO
     articles(author_id, title, category, "publishedOn", body)
@@ -100,10 +100,10 @@ function insertArticle(articleData, author_id, response) {
     body.title,
     body.category,
     body.publishedOn,
-    body.body,
+    body.body
   ]
   )
-    .then(result => {
+    .then(() => {
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
 
       response.send('insert complete');
@@ -113,25 +113,71 @@ function insertArticle(articleData, author_id, response) {
     });
 }
 
-
-// app.put('/articles/:id', function(request, response) {
-//   client.query(
-//     ``,
-//     []
+// an extra method for accessing articles
+// app.get('/articles/:id', (request, response) => {
+//   client.query(`
+//     SELECT
+//       articles.title,
+//       articles.category,
+//       authors.author,
+//       authors."authorUrl",
+//       articles."publishedOn",
+//       articles.body
+//     FROM articles
+//     JOIN authors
+//     ON articles.author_id = authors.author_id
+//     WHERE articles.article_id = $1;
+//   `,
+//   [request.params.id]
 //   )
-//     .then(() => {
-//       client.query(
-//         ``,
-//         []
-//       );
+//     .then(function(data) {
+//       if(data.rows.length === 0) response.sendStatus(404);
+//       else response.send(data.rows[0]);
 //     })
-//     .then(() => {
-//       response.send('Update complete');
-//     })
-//     .catch(err => {
-//       console.error(err);
+//     .catch(function(err) {
+//       if (err) console.error(err);
 //     });
 // });
+
+app.put('/articles/:id', (request, response) => {
+  const body = request.body;
+  client.query(`
+  UPDATE articles
+  SET   title = $1,
+        category = $2,
+        "publishedOn" = $3,
+        body = $4 
+  WHERE article_id = $5;
+  `,
+  [
+    body.title,
+    body.category,
+    body.publishedOn,
+    body.body,
+    request.params.id
+  ]
+  )
+    .then(() => {
+      client.query(`
+      UPDATE authors
+      SET author = $1,
+          "authorUrl" = $2
+      WHERE author_id = $3;
+      `,
+      [
+        body.author,
+        body.authorUrl,
+        body.author_id
+      ]
+      );
+    })
+    .then(() => {
+      response.send('Update complete');
+    })
+    .catch(err => {
+      console.error(err);
+    });
+});
 
 app.delete('/articles/:id', (request, response) => {
   client.query(

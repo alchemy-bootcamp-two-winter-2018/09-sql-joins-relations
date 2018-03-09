@@ -44,11 +44,12 @@ app.post('/articles/:author', (request, response) => {
     // NO, create author
 
     // YES skip right to
-    'SELECT author_id FROM authors WHERE author = $1',
-    [request.body.author]
+    `SELECT author_id FROM authors WHERE author = $1;`,
+    [request.params.author]
   )
-    .then(results => {
-      results ? queryThree(results) : queryTwo();
+    .then(result => {
+      console.log('working!!!!!!!!!!!!!!!!!!!!! In first query')
+      result.rows[0].author_id ? queryThree(result.rows[0].author_id) : queryTwo();
     })
     .catch(err => {
       console.log(err);
@@ -57,7 +58,7 @@ app.post('/articles/:author', (request, response) => {
   // TODOne: this function inserts new authors
   function queryTwo() {
     client.query(
-      `INSERT INTO authors(author, "authorUrl") VALUE ($1, $2)`,
+      `INSERT INTO authors(author, "authorUrl") VALUES ($1, $2);`,
       [request.body.author, request.body.authorUrl]
     )
       .then (result => {
@@ -67,19 +68,22 @@ app.post('/articles/:author', (request, response) => {
         console.error(err);
 
         // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-      })
+      });
   }
 
   // TODO: this function inserts the article
   function queryThree(author_id) {
     client.query(
-      `INSERT INTO articles(author_id, title, category, "publishedOn", body) VALUE ($1, $2, $3, $4, $5)`,
-      [author_id, request.body.title, request.body.category, request.body.publishedOn, request.body.body],
-      function(err) {
-        if (err) console.error(err);
+      `INSERT INTO articles(author_id, title, category, "publishedOn", body) VALUES ($1, $2, $3, $4, $5)`,
+      [author_id, request.body.title, request.body.category, request.body.publishedOn, request.body.body]
+    )
+      .then (() => {
+        console.log('working!!!!!!!!!!!!!!!!!!!!!');
         response.send('insert complete');
-      }
-    );
+      })
+      .catch(err => {
+        console.error(err);
+      });
   }
 });
 

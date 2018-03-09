@@ -25,7 +25,9 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query(`SELECT * FROM articles`)
+  client.query(
+    `SELECT * FROM articles JOIN authors ON articles.author_id=authors.author_id;`
+  )
     .then(result => {
       response.send(result.rows);
     })
@@ -38,46 +40,61 @@ app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
-    'SELECT authors_id AS author FROM kilovolt',
-    [],
-    function(err) {
-      if (err) console.error(err);
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-      
-      // Depends on what we found (Yes author id, or No author id?)
+    'SELECT * FROM authors WHERE author=$1;',
+    [request.body.author]
+  ).then (result => {
+    console.log(result.rows[0].author_id);
+  }).catch(err => {
+    if (err) console.error(err);
+  });
+  // REVIEW: This is our second query, to be executed when this first query is complete.
+    
+  // Depends on what we found (Yes author id, or No author id?)
 
-      // NO, create author
-      queryTwo();
+  // NO, create author
+  // queryTwo();
 
-      // YES skip right to
-      queryThree(/*author_id*/);
-    }
-  );
+  // YES skip right to
+  // queryThree(author_id);
 
   // TODO: this function inserts new authors
   function queryTwo() {
     client.query(
-      ``,
-      [],
-      function(err, result) {
-        if (err) console.error(err);
-
-        // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        queryThree(result.rows[0].author_id);
-      }
-    );
+      `INSERT INTO
+      articles(author)
+      VALUES ($1);`,
+      [request.body.author]
+    ).then (result => {
+      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+      // queryThree(result.rows[0].author_id);
+    }).catch (err => {
+      if (err) console.error(err);
+    });
   }
 
   // TODO: this function inserts the article
   function queryThree(author_id) {
     client.query(
-      ``,
-      [],
-      function(err) {
+      `UPDATE articles
+      SET
+      title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
+      WHERE article_id=$7`,
+      [
+        request.body.title,
+        request.body.author,
+        request.body.authorUrl,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body,
+        request.params.id
+      ]
+    )
+      .then (result => {
+        response.send('update complete');
+      })
+      .catch (err => {
         if (err) console.error(err);
-        response.send('insert complete');
-      }
-    );
+      });
   }
 });
 

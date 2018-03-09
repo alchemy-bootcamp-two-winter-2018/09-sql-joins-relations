@@ -1,3 +1,4 @@
+/* global Article */
 'use strict';
 
 const articleView = {};

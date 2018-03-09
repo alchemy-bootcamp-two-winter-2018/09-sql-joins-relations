@@ -34,11 +34,11 @@ app.get('/articles', (request, response) => {
       response.send(result.rows);
     })
     .catch(err => {
-      console.error(err);
+      if (err) console.error(err);
     });
 });
 
-app.post('/articles', (request, response) => {
+app.post('/articles', (request) => {
   // Do we have an author_id for the author name sent in request.body? NOPE
   // TODOne: How do you ask the database if we have an id for this author name?
   client.query(
@@ -50,8 +50,7 @@ app.post('/articles', (request, response) => {
       queryThree(request,result.rows[0].author_id);
     })
     .catch(function(err) {
-      const code = err.code === '22P02' ? 400 : 500;
-      response.status(code).send(err.message);
+      if (err) console.error(err);
     });
 });
 
@@ -70,17 +69,14 @@ function queryTwo(request){
     });
 }
 
-
-
 // TODOne: this function inserts the article
 function queryThree(request,author_id) {
-  console.log('Author Exists is true!');
   client.query(
     `INSERT INTO articles(author_id,title,category,"publishedOn",body)
     VALUES($1,$2,$3,$4,$5);`,
     [author_id,request.body.title,request.body.category,request.body.publishedOn,request.body.body])
     .then(function() {
-      console.log('insert complete');
+      console.log('Article Insert Complete!');
     })
     .catch(function(err){
       if (err) console.error(err);
@@ -89,7 +85,6 @@ function queryThree(request,author_id) {
 
 
 app.put('/articles/:id', function(request, response) {
-  console.log(request.body.author_id);
   client.query(
     `UPDATE articles
     SET title = $1,

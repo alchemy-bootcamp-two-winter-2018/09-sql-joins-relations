@@ -25,7 +25,18 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query('SELECT * FROM articles')
+  client.query(`
+    SELECT
+      articles.title, 
+      articles.category, 
+      authors.author, 
+      authors."authorUrl", 
+      articles."publishedOn", 
+      articles.body
+    FROM articles
+    JOIN authors
+    ON articles.author_id = authors.author_id;
+    `)
     .then(result => {
       response.send(result.rows);
     })

@@ -68,7 +68,7 @@ app.post('/articles', (request, response) => {
     client.query(
       `
       INSERT INTO authors (author, "authorUrl")
-      VALUES ('$1', '$2') ON CONFLICT DO NOTHING;
+      VALUES ($1, $2) ON CONFLICT DO NOTHING;
       `,
       [newAuthor, newAuthorUrl])
       .then(() => {

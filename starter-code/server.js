@@ -25,7 +25,7 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query(``)
+  client.query(`SELECT * FROM articles`)
     .then(results => {
       console.log(results);
       response.send(results.rows);
@@ -35,46 +35,49 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles/:author', (request, response) => {
+app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODOne: How do you ask the database if we have an id for this author name?
+    // TODO: How do you ask the database if we have an id for this author name?
     `SELECT *
     FROM authors
-    WHERE author_id =$1;`,
+    WHERE author =$1;`,
     [request.body.author])
 
     .then((result) =>{
-      console.log(result.rows);
+      if (result.rows.length ===0) queryTwo(request.body.author,request.body.authorUrl);
+      // queryThree(result.rows[0].author_id)
 
     })
     .catch((err) =>{
+      const code = err.code === '22P02' ? 400 : 500;
+      response.status(code).send(err.mmessage);
       if (err) console.error(err);
       // REVIEW: This is our second query, to be executed when this first query is complete.
 
       // Depends on what we found (Yes author id, or No author id?)
 
       // NO, create author
-      queryTwo(
-
-      );
 
       // YES skip right to
-      queryThree(/*author_id*/);
+      // queryThree(/*author_id*/);
     })
 
   // TODO: this function inserts new authors
-  function queryTwo() {
+  function queryTwo(author, authorUrl) {
     client.query(
-      ``,
-      [],
-      function(err, result) {
-        if (err) console.error(err);
-
-        // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        queryThree(result.rows[0].author_id);
-      }
-    )
+      `INSERT INTO
+            authors(author, "authorUrl")
+            VALUES($1,$2) RETURNING author_id;`,
+      [author, authorUrl]
+    ).then (result => {
+      console.log(result.rows[0].author_id)
+    }).catch (err => {
+      if (err) console.error(err);
+    });
+    
+    // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+    // queryThree(result.rows[0].author_id);
   }
 
   // TODO: this function inserts the article

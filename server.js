@@ -39,10 +39,12 @@ app.get('/articles', (request, response) => {
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
-    // TODO: How do you ask the database if we have an id for this author name?
+    // TODOne?: How do you ask the database if we have an id for this author name?
     'SELECT * FROM authors WHERE author=$1;',
     [request.body.author]
   ).then (result => {
+    if (result.rows.length === 0) queryTwo();
+    queryThree(result.rows[0].author_id);
     console.log(result.rows[0].author_id);
   }).catch(err => {
     if (err) console.error(err);
@@ -52,7 +54,6 @@ app.post('/articles', (request, response) => {
   // Depends on what we found (Yes author id, or No author id?)
 
   // NO, create author
-  // queryTwo();
 
   // YES skip right to
   // queryThree(author_id);
@@ -61,12 +62,12 @@ app.post('/articles', (request, response) => {
   function queryTwo() {
     client.query(
       `INSERT INTO
-      articles(author)
-      VALUES ($1);`,
+      articles(author, authorUrl)
+      VALUES ($1, $2);`,
       [request.body.author]
     ).then (result => {
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-      // queryThree(result.rows[0].author_id);
+      queryThree(result.rows[0].author_id);
     }).catch (err => {
       if (err) console.error(err);
     });
@@ -75,18 +76,11 @@ app.post('/articles', (request, response) => {
   // TODO: this function inserts the article
   function queryThree(author_id) {
     client.query(
-      `UPDATE articles
-      SET
-      title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
-      WHERE article_id=$7`,
+      `INSERT INTO AUTHORS
+      VALUES
+      author=$1, WHERE author_id=$1;`,
       [
-        request.body.title,
-        request.body.author,
-        request.body.authorUrl,
-        request.body.category,
-        request.body.publishedOn,
-        request.body.body,
-        request.params.id
+        request.body.author
       ]
     )
       .then (result => {

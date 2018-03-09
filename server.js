@@ -39,32 +39,23 @@ app.get('/articles', (request, response) => {
 });
 
 app.post('/articles', (request, response) => {
-  // Do we have an author_id for the author name sent in request.body?
-  // TODO: How do you ask the database if we have an id for this author name?
+  // Do we have an author_id for the author name sent in request.body? NOPE
+  // TODOne: How do you ask the database if we have an id for this author name?
   client.query(
     `SELECT * from authors where author=$1;`,
     [request.body.author]
   )
     .then(function(result) {
       if (result.rows.length === 0) queryTwo(request);
-      queryThree(result.rows[0].author_id);
+      queryThree(request,result.rows[0].author_id);
     })
     .catch(function(err) {
       const code = err.code === '22P02' ? 400 : 500;
       response.status(code).send(err.message);
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-
-    // Depends on what we found (Yes author id, or No author id?)
-
-    // NO, create author
     });
-  // queryTwo();
-
-  // YES skip right to
-  // queryThree(/*author_id*/);
 });
 
-// TODO: this function inserts new authors
+// TODOne: this function inserts new authors
 function queryTwo(request){
   client.query(
     `INSERT INTO authors(author,"authorUrl")
@@ -73,17 +64,15 @@ function queryTwo(request){
   )
     .then(function(result) {
       queryThree(request,result.rows[0].author_id);
-//queryThree(result.rows[0].author_id);
     })
     .catch(function(err){
       if (err) console.error(err);
     });
-  // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
 }
 
 
 
-// TODO: this function inserts the article
+// TODOne: this function inserts the article
 function queryThree(request,author_id) {
   console.log('Author Exists is true!');
   client.query(

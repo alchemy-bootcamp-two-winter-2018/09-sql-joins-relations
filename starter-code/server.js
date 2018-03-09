@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 // TODOne: put in connection string
-const conString ='postgres://postgres:Alchemy@localhost:5432/kilovolt';
+const conString = 'postgres://postgres:Alchemy@localhost:5432/kilovolt';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', error => {
@@ -26,40 +26,42 @@ app.get('/new', (request, response) => {
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
   client.query(``)
-    .then(result => {
-      response.send(result.rows);
+    .then(results => {
+      console.log(results);
+      response.send(results.rows);
     })
     .catch(err => {
       console.error(err)
     });
 });
 
-app.post('/articles', (request, response) => {
+app.post('/articles/:author', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
     // TODOne: How do you ask the database if we have an id for this author name?
-    `INSERT INTO
-    articles(title, author, "authorUrl", category, "publishedOn", body)
-    VALUES ($1, $2, $3, $4, $5, $6);`,
-    [request.body.title,
-      request.body.author,
-      request.body.authorUrl,
-      request.body.category,
-      request.body.publishedOn,
-      request.body.body],
-    function(err) {
+    `SELECT *
+    FROM authors
+    WHERE author_id =$1;`,
+    [request.body.author])
+
+    .then((result) =>{
+      console.log(result.rows);
+
+    })
+    .catch((err) =>{
       if (err) console.error(err);
       // REVIEW: This is our second query, to be executed when this first query is complete.
-      
+
       // Depends on what we found (Yes author id, or No author id?)
 
       // NO, create author
-      queryTwo();
+      queryTwo(
+
+      );
 
       // YES skip right to
       queryThree(/*author_id*/);
-    }
-  )
+    })
 
   // TODO: this function inserts new authors
   function queryTwo() {
@@ -76,7 +78,7 @@ app.post('/articles', (request, response) => {
   }
 
   // TODO: this function inserts the article
-  function queryThree(author_id) {
+  function queryThree() {
     client.query(
       ``,
       [],
@@ -167,7 +169,7 @@ function loadArticles() {
             FROM authors
             WHERE author=$5;
             `,
-              [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
+            [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
             )
           })
         })
@@ -178,6 +180,7 @@ function loadArticles() {
 // REVIEW: Below are two queries, wrapped in the loadDB() function, which create separate tables in our DB, and create a relationship between the authors and articles tables.
 // THEN they load their respective data from our JSON file.
 function loadDB() {
+  console.log('db loaded');
   client.query(`
     CREATE TABLE IF NOT EXISTS
     authors (

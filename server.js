@@ -25,7 +25,11 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query(`SELECT * FROM articles`)
+  client.query(`
+  SELECT *
+      FROM articles
+      INNER JOIN authors
+      ON articles.author_id=authors.author_id;`)
     .then(result => {
       response.send(result.rows);
     })
@@ -34,13 +38,14 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles/:author', (request, response) => {
+app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
+  const body = request.body;
 
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
     'SELECT author_id FROM authors WHERE author= $1;',
-    [request.params.author])
+    [author])
     .then(result => {
       console.log(result);
       result ? queryThree(result.rows[0].author_id) : queryTwo();
@@ -56,8 +61,9 @@ app.post('/articles/:author', (request, response) => {
 
   // TODO: this function inserts new authors
   function queryTwo() {
+    
     client.query(
-      `INSERT INTO authors(author, "authorURL") VALUES ($1 $2);`,
+      `INSERT INTO authors(author, "authorURL") VALUES ($1 $2); RETURNING author_id;`,
       [request.body.author, request.body.authorURL])
       .then(result => {
 
@@ -72,8 +78,14 @@ app.post('/articles/:author', (request, response) => {
   // TODO: this function inserts the article
   function queryThree(author_id) {
     client.query(
-      `INSERT INTO articles(title, author, "authorURL", category, "publishedOn", body) VALUES ($1, $2, $3, $4, $5)`
-      [author_id, request.body.title, request.body.category, request.body.publishedOn, request.body.body])
+      `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
+        VALUES($1, $2, $3, $4, $5);`
+      [ author_id, 
+        body.title,
+        body.category,
+        body.publishedOn,
+        body.body
+        ])
       .then(result => {
         response.send('insert complete');
       }).catch(err => {
@@ -82,17 +94,32 @@ app.post('/articles/:author', (request, response) => {
 }
 
 app.put('/articles/:id', function(request, response) {
+  const body = request.body;
+  const params = request.params;
+
   client.query(
-    ` UPDATE articles
-    SET
-    title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
-    WHERE article_id=$7;`,
-    []
+    `UPDATE authors
+      SET author=$1, author_url=$2
+      WHERE author_id=$6;`,
+    [ 
+      body.author,
+      body.authorUrl,
+      body.author_id
+    ]
   )
     .then(() => {
       client.query(
-        ``,
-        []
+        `UPDATE articles
+          SET author_id=$1, title=$2, category=$3, published_on=$4, body=$5
+          WHERE article_id=$6;`,
+        [ 
+          body.author_id,
+          body.title,
+          body.category,
+          body.publishedOn,
+          body.body,
+          params.id
+        ]
       )
     })
     .then(() => {
@@ -142,7 +169,7 @@ function loadAuthors() {
   fs.readFile('./public/data/hackerIpsum.json', 'utf8', (err, fd) => {
     JSON.parse(fd).forEach(ele => {
       client.query(
-        'INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING',
+        'INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING;',
         [ele.author, ele.authorUrl]
       )
     })

@@ -40,15 +40,14 @@ app.get('/articles', (request, response) => {
 
 app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
-  const body = request.body;
 
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
     'SELECT author_id FROM authors WHERE author= $1;',
-    [author])
+    [request.body.author])
     .then(result => {
       console.log(result);
-      result ? queryThree(result.rows[0].author_id) : queryTwo();
+      result.rows.length > 0 ? queryThree(result.rows[0].author_id) : queryTwo();
     })
     .catch(err => {
       console.error(err);
@@ -69,6 +68,7 @@ app.post('/articles', (request, response) => {
 
         // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
         queryThree(result.rows[0].author_id);
+        console.log('query2 finished');
       }
     ).catch(err => {
     console.error(err);
@@ -77,14 +77,16 @@ app.post('/articles', (request, response) => {
 
   // TODO: this function inserts the article
   function queryThree(author_id) {
+
+
     client.query(
       `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
         VALUES($1, $2, $3, $4, $5);`
       [ author_id, 
-        body.title,
-        body.category,
-        body.publishedOn,
-        body.body
+        request.body.title,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body
         ])
       .then(result => {
         response.send('insert complete');

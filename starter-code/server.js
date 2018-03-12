@@ -39,14 +39,13 @@ app.post('/articles', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
-    `SELECT *
-    FROM authors
+    `SELECT 
+    FROM author_id
     WHERE author =$1;`,
     [request.body.author])
 
     .then((result) =>{
       if (result.rows.length ===0) queryTwo(request.body.author,request.body.authorUrl);
-      // queryThree(result.rows[0].author_id)
 
     })
     .catch((err) =>{
@@ -63,7 +62,7 @@ app.post('/articles', (request, response) => {
       // queryThree(/*author_id*/);
     })
 
-  // TODO: this function inserts new authors
+  // TODOne: this function inserts new authors
   function queryTwo(author, authorUrl) {
     client.query(
       `INSERT INTO
@@ -71,25 +70,28 @@ app.post('/articles', (request, response) => {
             VALUES($1,$2) RETURNING author_id;`,
       [author, authorUrl]
     ).then (result => {
-      console.log(result.rows[0].author_id)
+      queryThree(result.rows[0].author_id);
     }).catch (err => {
       if (err) console.error(err);
     });
-    
-    // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-    // queryThree(result.rows[0].author_id);
-  }
 
-  // TODO: this function inserts the article
-  function queryThree() {
+    // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+
+  }
+  // TODOne: this function inserts the article
+  function queryThree(author_id, title, category, publishedOn, body) {
     client.query(
-      ``,
-      [],
-      function(err) {
-        if (err) console.error(err);
-        response.send('insert complete');
-      }
-    );
+      `INSERT INTO
+            articles(author_id, title, category, "published_on", body)
+            VALUES($1,$2,$3,$4,$5)`,
+      [author_id,title,category,publishedOn,body]
+    ).then (result => {
+      console.log(result.rows[0].author_id)
+    }).catch (err => {
+      if (err) console.error(err);
+      response.send('insert complete');
+    });
+
   }
 });
 

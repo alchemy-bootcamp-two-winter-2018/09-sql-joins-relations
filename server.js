@@ -30,11 +30,11 @@ app.get('/articles', (request, response) => {
       articles.title, 
       articles.category, 
       authors.author, 
-      authors."authorUrl", 
-      articles."publishedOn", 
+      authors.author_url AS "authorUrl",
+      articles.published_on AS "publishedOn",
       articles.body
     FROM articles
-    JOIN authors
+    INNER JOIN authors
     ON articles.author_id = authors.author_id;
     `)
     .then(result => {
@@ -68,7 +68,7 @@ app.post('/articles', (request, response) => {
 // TODOne: this function inserts new authors
 function insertAuthor(request, response) {
   client.query(`
-    INSERT INTO authors (author, "authorUrl")
+    INSERT INTO authors (author, author_url)
     VALUES ($1, $2)
     RETURNING author_id;
     `,
@@ -90,7 +90,7 @@ function insertArticle(request, author_id, response) {
   const body = request.body;
   client.query(`
     INSERT INTO
-    articles(author_id, title, category, "publishedOn", body)
+    articles(author_id, title, category, published_on, body)
     VALUES ($1, $2, $3, $4, $5);
     `,
   [
@@ -118,12 +118,12 @@ app.get('/articles/:id', (request, response) => {
       articles.title,
       articles.category,
       authors.author,
-      authors."authorUrl",
-      articles."publishedOn",
+      authors.author_url AS "authorUrl",
+      articles.published_on AS "publishedOn",
       articles.body,
       authors.author_id
     FROM articles
-    JOIN authors
+    INNER JOIN authors
     ON articles.author_id = authors.author_id
     WHERE articles.article_id = $1;
   `,
@@ -144,7 +144,7 @@ app.put('/articles/:id', (request, response) => {
   UPDATE articles
   SET   title = $1,
         category = $2,
-        "publishedOn" = $3,
+        published_on = $3,
         body = $4 
   WHERE article_id = $5;
   `,
@@ -160,7 +160,7 @@ app.put('/articles/:id', (request, response) => {
       client.query(`
       UPDATE authors
       SET author = $1,
-          "authorUrl" = $2
+          author_url = $2
       WHERE author_id = $3;
       `,
       [
@@ -217,7 +217,7 @@ function loadAuthors() {
   fs.readFile('./public/data/hackerIpsum.json', 'utf8', (err, fd) => {
     JSON.parse(fd).forEach(ele => {
       client.query(
-        'INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING',
+        'INSERT INTO authors(author, author_url) VALUES($1, $2) ON CONFLICT DO NOTHING',
         [ele.author, ele.authorUrl]
       );
     });
@@ -233,7 +233,7 @@ function loadArticles() {
           JSON.parse(fd).forEach(ele => {
             client.query(`
             INSERT INTO
-            articles(author_id, title, category, "publishedOn", body)
+            articles(author_id, title, category, published_on, body)
             SELECT author_id, $1, $2, $3, $4
             FROM authors
             WHERE author=$5;
@@ -254,7 +254,7 @@ function loadDB() {
     authors (
       author_id SERIAL PRIMARY KEY,
       author VARCHAR(255) UNIQUE NOT NULL,
-      "authorUrl" VARCHAR (255)
+      author_url VARCHAR (255)
     );`
   )
     .then(data => {
@@ -271,7 +271,7 @@ function loadDB() {
       author_id INTEGER NOT NULL REFERENCES authors(author_id),
       title VARCHAR(255) NOT NULL,
       category VARCHAR(20),
-      "publishedOn" DATE,
+      published_on DATE,
       body TEXT NOT NULL
     );`
   )
@@ -282,3 +282,4 @@ function loadDB() {
       console.error(err);
     });
 }
+

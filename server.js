@@ -34,16 +34,16 @@ app.get('/articles', (request, response) => {
       response.send(result.rows);
     })
     .catch(err => {
-      console.error(err)
+      console.error(err);
     });
 });
 
-app.post('/articles', (request, response) => {
+app.post('/articles', (request) => {
   // Do we have an author_id for the author name sent in request.body?
 
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
-    'SELECT author_id FROM authors WHERE author= $1;',
+    `SELECT author_id FROM authors WHERE author= $1;`,
     [request.body.author])
     .then(result => {
       console.log(result);
@@ -51,48 +51,47 @@ app.post('/articles', (request, response) => {
     })
     .catch(err => {
       console.error(err);
-    })
-      // REVIEW: This is our second query, to be executed when this first query is complete.
-      
-      // Depends on what we found (Yes author id, or No author id?)
+    });
+  // REVIEW: This is our second query, to be executed when this first query is complete.
+
+  // Depends on what we found (Yes author id, or No author id?)
+});
+
+// TODO: this function inserts new authors
+function newAuthor() {
+
+  client.query(
+    `INSERT INTO authors(author, "authorURL") VALUES ($1 $2); RETURNING author_id;`,
+    [request.body.author, request.body.authorURL])
+    .then(result => {
+
+      // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
+      newArticle(result.rows[0].author_id);
+      console.log('query2 finished');
     }
-  )
-
-  // TODO: this function inserts new authors
-  function newAuthor() {
-    
-    client.query(
-      `INSERT INTO authors(author, "authorURL") VALUES ($1 $2); RETURNING author_id;`,
-      [request.body.author, request.body.authorURL])
-      .then(result => {
-
-        // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        newArticle(result.rows[0].author_id);
-        console.log('query2 finished');
-      }
     ).catch(err => {
-    console.error(err);
-  })
-  }
+      console.error(err);
+    });
+}
 
-  // TODO: this function inserts the article
-  function newArticle(author_id) {
+// TODO: this function inserts the article
+function newArticle(author_id) {
 
 
-    client.query(
-      `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
+  client.query(
+    `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
         VALUES($1, $2, $3, $4, $5);`
-      [ author_id, 
+      [ author_id,
         request.body.title,
         request.body.category,
         request.body.publishedOn,
         request.body.body
-        ])
-      .then(result => {
-        response.send('insert complete');
-      }).catch(err => {
-        console.error(err);
-      })
+      ])
+    .then(result => {
+      response.send('insert complete');
+    }).catch(err => {
+      console.error(err);
+    });
 }
 
 app.put('/articles/:id', function(request, response) {
@@ -103,7 +102,7 @@ app.put('/articles/:id', function(request, response) {
     `UPDATE authors
       SET author=$1, author_url=$2
       WHERE author_id=$6;`,
-    [ 
+    [
       body.author,
       body.authorUrl,
       body.author_id
@@ -114,7 +113,7 @@ app.put('/articles/:id', function(request, response) {
         `UPDATE articles
           SET author_id=$1, title=$2, category=$3, published_on=$4, body=$5
           WHERE article_id=$6;`,
-        [ 
+        [
           body.author_id,
           body.title,
           body.category,
@@ -122,14 +121,14 @@ app.put('/articles/:id', function(request, response) {
           body.body,
           params.id
         ]
-      )
+      );
     })
     .then(() => {
       response.send('Update complete');
     })
     .catch(err => {
       console.error(err);
-    })
+    });
 });
 
 app.delete('/articles/:id', (request, response) => {
@@ -141,17 +140,17 @@ app.delete('/articles/:id', (request, response) => {
       response.send('Delete complete');
     })
     .catch(err => {
-      console.error(err)
+      console.error(err);
     });
 });
 
 app.delete('/articles', (request, response) => {
-  client.query('DELETE FROM articles')
+  client.query(`DELETE FROM articles`)
     .then(() => {
       response.send('Delete complete');
     })
     .catch(err => {
-      console.error(err)
+      console.error(err);
     });
 });
 
@@ -171,16 +170,16 @@ function loadAuthors() {
   fs.readFile('./public/data/hackerIpsum.json', 'utf8', (err, fd) => {
     JSON.parse(fd).forEach(ele => {
       client.query(
-        'INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING;',
+        `INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING;`,
         [ele.author, ele.authorUrl]
-      )
-    })
-  })
+      );
+    });
+  });
 }
 
 // REVIEW: This helper function will load articles into the DB if the DB is empty.
 function loadArticles() {
-  client.query('SELECT COUNT(*) FROM articles')
+  client.query(`SELECT COUNT(*) FROM articles`)
     .then(result => {
       if(!parseInt(result.rows[0].count)) {
         fs.readFile('./public/data/hackerIpsum.json', 'utf8', (err, fd) => {
@@ -192,12 +191,12 @@ function loadArticles() {
             FROM authors
             WHERE author=$5;
             `,
-              [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
-            )
-          })
-        })
+            [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
+            );
+          });
+        });
       }
-    })
+    });
 }
 
 // REVIEW: Below are two queries, wrapped in the loadDB() function, which create separate tables in our DB, and create a relationship between the authors and articles tables.
@@ -215,7 +214,7 @@ function loadDB() {
       loadAuthors(data);
     })
     .catch(err => {
-      console.error(err)
+      console.error(err);
     });
 
   client.query(`
@@ -233,6 +232,6 @@ function loadDB() {
       loadArticles(data);
     })
     .catch(err => {
-      console.error(err)
+      console.error(err);
     });
 }

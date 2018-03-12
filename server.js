@@ -61,8 +61,8 @@ app.post('/articles', (request) => {
 function newAuthor() {
 
   client.query(
-    `INSERT INTO authors(author, "authorURL") VALUES ($1 $2); RETURNING author_id;`,
-    [request.body.author, request.body.authorURL])
+    `INSERT INTO authors(author, author_url) VALUES ($1 $2); RETURNING author_id;`,
+    [request.body.author, request.body.author_url])
     .then(result => {
 
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.

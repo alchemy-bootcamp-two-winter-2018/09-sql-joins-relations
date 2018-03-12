@@ -47,7 +47,7 @@ app.post('/articles', (request, response) => {
     [request.body.author])
     .then(result => {
       console.log(result);
-      result.rows.length > 0 ? queryThree(result.rows[0].author_id) : queryTwo();
+      result.rows.length > 0 ? newArticle(result.rows[0].author_id) : newAuthor();
     })
     .catch(err => {
       console.error(err);
@@ -59,7 +59,7 @@ app.post('/articles', (request, response) => {
   )
 
   // TODO: this function inserts new authors
-  function queryTwo() {
+  function newAuthor() {
     
     client.query(
       `INSERT INTO authors(author, "authorURL") VALUES ($1 $2); RETURNING author_id;`,
@@ -67,7 +67,7 @@ app.post('/articles', (request, response) => {
       .then(result => {
 
         // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-        queryThree(result.rows[0].author_id);
+        newArticle(result.rows[0].author_id);
         console.log('query2 finished');
       }
     ).catch(err => {
@@ -76,7 +76,7 @@ app.post('/articles', (request, response) => {
   }
 
   // TODO: this function inserts the article
-  function queryThree(author_id) {
+  function newArticle(author_id) {
 
 
     client.query(

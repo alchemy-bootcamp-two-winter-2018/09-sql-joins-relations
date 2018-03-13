@@ -55,45 +55,45 @@ app.post('/articles', (request) => {
   // REVIEW: This is our second query, to be executed when this first query is complete.
 
   // Depends on what we found (Yes author id, or No author id?)
-});
 
-// TODO: this function inserts new authors
-function newAuthor() {
+  // TODO: this function inserts new authors
+  function newAuthor() {
 
-  client.query(
-    `INSERT INTO authors(author, author_url) VALUES ($1 $2); RETURNING author_id;`,
-    [request.body.author, request.body.author_url])
-    .then(result => {
+    client.query(
+      `INSERT INTO authors(author, author_url) VALUES ($1 $2); RETURNING author_id;`,
+      [request.body.author, request.body.author_url])
+      .then(result => {
 
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
-      newArticle(result.rows[0].author_id);
-      console.log('query2 finished');
-    }
+        newArticle(result.rows[0].author_id);
+        console.log('query2 finished');
+      }
     ).catch(err => {
       console.error(err);
     });
-}
-
-// TODO: this function inserts the article
-function newArticle(author_id) {
-
-
-  client.query(
-    `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
+  }
+  
+  // TODO: this function inserts the article
+  function newArticle(author_id) {
+    
+    
+    client.query(
+      `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
         VALUES($1, $2, $3, $4, $5);`
-      [ author_id,
-        request.body.title,
-        request.body.category,
-        request.body.publishedOn,
-        request.body.body
-      ])
-    .then(result => {
-      response.send('insert complete');
-    }).catch(err => {
-      console.error(err);
-    });
-}
-
+        [ author_id,
+          request.body.title,
+          request.body.category,
+          request.body.publishedOn,
+          request.body.body
+        ])
+        .then(result => {
+          response.send('insert complete');
+        }).catch(err => {
+          console.error(err);
+        });
+      }
+});
+ 
 app.put('/articles/:id', function(request, response) {
   const body = request.body;
   const params = request.params;

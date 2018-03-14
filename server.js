@@ -38,15 +38,14 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles', (request) => {
+app.post('/articles/:author', (request) => {
   // Do we have an author_id for the author name sent in request.body?
 
   client.query(
     // TODO: How do you ask the database if we have an id for this author name?
     `SELECT author_id FROM authors WHERE author= $1;`,
-    [request.body.author])
+    [request.params.author])
     .then(result => {
-      console.log(result);
       result.rows.length > 0 ? newArticle(result.rows[0].author_id) : newAuthor();
     })
     .catch(err => {
@@ -60,23 +59,23 @@ app.post('/articles', (request) => {
   function newAuthor() {
 
     client.query(
-      `INSERT INTO authors(author, author_url) VALUES ($1 $2); RETURNING author_id;`,
-      [request.body.author, request.body.author_url])
+      `INSERT INTO authors(author, "authorUrl") VALUES ($1, $2) RETURNING author_id;`,
+      [request.body.author, request.body.authorUrl])
       .then(result => {
 
       // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
         newArticle(result.rows[0].author_id);
         console.log('query2 finished');
       }
-    ).catch(err => {
-      console.error(err);
-    });
+      ).catch(err => {
+        console.error(err);
+      });
   }
-  
+
   // TODO: this function inserts the article
   function newArticle(author_id) {
-    
-    
+
+
     client.query(
       `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
         VALUES($1, $2, $3, $4, $5);`
@@ -86,40 +85,40 @@ app.post('/articles', (request) => {
           request.body.publishedOn,
           request.body.body
         ])
-        .then(result => {
+        .then(() => {
           response.send('insert complete');
         }).catch(err => {
           console.error(err);
         });
-      }
+  }
 });
- 
+
 app.put('/articles/:id', function(request, response) {
   const body = request.body;
-  const params = request.params;
+  const id = request.params;
 
   client.query(
     `UPDATE authors
-      SET author=$1, author_url=$2
+      SET author=$1, "authorUrl"=$2
       WHERE author_id=$6;`,
     [
       body.author,
       body.authorUrl,
-      body.author_id
+      id
     ]
   )
     .then(() => {
       client.query(
         `UPDATE articles
-          SET author_id=$1, title=$2, category=$3, published_on=$4, body=$5
-          WHERE article_id=$6;`,
+          SET author_id=$1, title=$2, category=$3, "publishedOn"=$4, body=$5
+          WHERE id=$6;`,
         [
           body.author_id,
           body.title,
           body.category,
           body.publishedOn,
           body.body,
-          params.id
+          id
         ]
       );
     })

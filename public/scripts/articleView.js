@@ -114,7 +114,7 @@ articleView.submit = event => {
     body: $('#article-body').val(),
     publishedOn: new Date().toISOString()
   });
-
+  console.log(article);
   article.insertRecord();
 };
 

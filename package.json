@@ -1,0 +1,31 @@
+{
+  "name": "mvc-blog",
+  "version": "1.0.0",
+  "description": "As we now complete our MVC conversation, we can refactor our app to use good MVC separation of concerns.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "start:watch": "nodemon server.js"
+  },
+  "author": "Code Fellows",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.16.2",
+    "npm": "^5.7.1",
+    "pg": "^7.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.18.2",
+    "nodemon": "^1.17.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kelihansen/09-sql-joins-relations.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kelihansen/09-sql-joins-relations/issues"
+  },
+  "homepage": "https://github.com/kelihansen/09-sql-joins-relations#readme"
+}

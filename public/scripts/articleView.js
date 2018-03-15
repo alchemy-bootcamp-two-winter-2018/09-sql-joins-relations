@@ -88,7 +88,7 @@ articleView.create = () => {
   let article;
   $('#articles').empty();
 
-  article = new Article({
+  article = new Article({ /*eslint-disable*/
     title: $('#article-title').val(),
     author: $('#article-author').val(),
     authorUrl: $('#article-author-url').val(),
@@ -106,7 +106,7 @@ articleView.create = () => {
 
 articleView.submit = event => {
   event.preventDefault();
-  let article = new Article({
+  let article = new Article({/*eslint-disable*/
     title: $('#article-title').val(),
     author: $('#article-author').val(),
     authorUrl: $('#article-author-url').val(),
@@ -114,13 +114,13 @@ articleView.submit = event => {
     body: $('#article-body').val(),
     publishedOn: new Date().toISOString()
   });
-
+  console.log(article);
   article.insertRecord();
-}
+};
 
 articleView.initIndexPage = () => {
-  Article.all.forEach(article => {
-    $('#articles').append(article.toHtml())
+  Article.all.forEach(article => {/*eslint-disable*/
+    $('#articles').append(article.toHtml());
   });
 
   articleView.populateFilters();

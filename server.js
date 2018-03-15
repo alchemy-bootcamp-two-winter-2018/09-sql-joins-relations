@@ -38,7 +38,7 @@ app.get('/articles', (request, response) => {
     });
 });
 
-app.post('/articles/:author', (request) => {
+app.post('/articles/:author', (request, response) => {
   // Do we have an author_id for the author name sent in request.body?
 
   client.query(
@@ -78,8 +78,9 @@ app.post('/articles/:author', (request) => {
 
     client.query(
       `INSERT INTO articles(author_id, title, category, "publishedOn", body) 
-        VALUES($1, $2, $3, $4, $5);`
-        [ author_id,
+        VALUES($1, $2, $3, $4, $5);`,
+        [ 
+          author_id,
           request.body.title,
           request.body.category,
           request.body.publishedOn,

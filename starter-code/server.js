@@ -23,16 +23,18 @@ app.get('/new', (request, response) => {
 });
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
+// Join all data from articles and authors tables on the author_id value of each
 app.get('/articles', (request, response) => {
   client.query(`
-  SELECT * FROM articles;
-  `)
-    .then(result => {
-      response.send(result.rows);
-    })
-    .catch(err => {
-      console.error(err)
-    });
+  SELECT *, 
+    articles.published_on as "publishedOn",
+    authors.author_url as "author_url"
+  FROM articles
+  INNER JOIN authors
+  ON articles.author_id=authors.author_id;
+`)
+  .then(result => response.send(result.rows))
+  .catch(console.error);
 });
 
 app.post('/articles', (request, response) => {
@@ -61,7 +63,7 @@ app.post('/articles', (request, response) => {
   function queryTwo(newAuthor, newAuthorUrl) {
     client.query(
       `
-      INSERT INTO authors (author, "authorUrl")
+      INSERT INTO authors (author, author_url)
       VALUES ($1, $2) ON CONFLICT DO NOTHING;
       `,
       [newAuthor, newAuthorUrl])
@@ -155,7 +157,7 @@ function loadAuthors() {
   fs.readFile('./public/data/hackerIpsum.json', 'utf8', (err, fd) => {
     JSON.parse(fd).forEach(ele => {
       client.query(
-        'INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING',
+        'INSERT INTO authors(author, author_url) VALUES($1, $2) ON CONFLICT DO NOTHING',
         [ele.author, ele.authorUrl]
       )
     })
@@ -192,7 +194,7 @@ function loadDB() {
     authors (
       author_id SERIAL PRIMARY KEY,
       author VARCHAR(255) UNIQUE NOT NULL,
-      "authorUrl" VARCHAR (255)
+      author_url VARCHAR (255)
     );`
   )
     .then(data => {
